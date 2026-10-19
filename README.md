@@ -72,3 +72,38 @@ curl http://localhost:<APP_PORT>/api/tasks
 docker compose --env-file student.env down
 ```
 
+1. Sửa lỗi permission denied của Docker trên server (BẮT BUỘC)
+
+Tài khoản azureuser chưa có quyền chạy Docker không cần sudo, dẫn đến pipeline khi SSH vào server sẽ bị chặn quyền.
+
+👉 Trên terminal server (azureuser@mayao2:~$), bạn chạy 2 lệnh sau:
+
+bash
+sudo usermod -aG docker azureuser
+newgrp docker
+
+Sau đó gõ lại:
+
+bash
+docker ps
+
+Khi màn hình hiện ra dòng tiêu đề CONTAINER ID   IMAGE   COMMAND ... (không còn báo permission denied) là đã xong bước này!
+
+2. Về lỗi No such file or directory và couldn't find env file
+
+Lý do chưa có thư mục này là vì:
+
+Job Deploy lên server ở lần chạy trước bị lỗi nên chưa kịp tự clone mã nguồn về.
+Tên repository trên GitHub của bạn là final-de003-buituangiang (nên khi deploy thành công, thư mục tạo ra trên server sẽ tên là final-de003-buituangiang).
+3. Kích hoạt lại Pipeline CI/CD
+Đảm bảo bạn đã thêm đủ 3 Secret (SERVER_HOST, SERVER_USER, SERVER_SSH_KEY) tại: 👉 https://github.com/AIappliacation/final-de003-buituangiang/settings/secrets/actions
+Trên giao diện GitHub Actions (ở ảnh bạn vừa chụp):
+Bấm nút Re-run jobs ở góc trên bên phải → chọn Re-run all jobs (hoặc bấm vào nút Latest #2 bên cạnh để xem kết quả lần chạy thứ 2 nếu đã chạy).
+
+Khi job Deploy lên server báo xanh ✅:
+
+Trên server sẽ tự động có thư mục final-de003-buituangiang.
+Bạn vào thư mục đó để kiểm tra container:
+bash
+cd ~/final-de003-buituangiang
+docker compose --env-file student.env ps
